@@ -257,6 +257,8 @@ public class OSSimulatorGUI extends JFrame {
         };
         
         simulator = new OSSimulator(algo, this);
+        // Set GUI input provider for dialog-based input
+        simulator.setInputProvider(new GUIInputProvider(this));
         
         simulationTimer = new Timer(2000, e -> {
             if (isRunning) {
@@ -290,6 +292,8 @@ public class OSSimulatorGUI extends JFrame {
         
         if (simulator == null) {
             simulator = new OSSimulator(algo, this);
+            // Set GUI input provider for dialog-based input
+            simulator.setInputProvider(new GUIInputProvider(this));
         }
         
         simulator.stepSimulation();

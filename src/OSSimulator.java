@@ -83,6 +83,22 @@ public class OSSimulator {
         }
     }
     
+    /**
+     * Set the InputProvider for this simulator (useful for switching between console and GUI input)
+     */
+    public void setInputProvider(InputProvider provider) {
+        if (provider != null) {
+            this.inputProvider = provider;
+        }
+    }
+    
+    /**
+     * Get the current InputProvider
+     */
+    public InputProvider getInputProvider() {
+        return inputProvider;
+    }
+    
     private static String[][] getDefaultPrograms() {
         return new String[][] {
             {  // Process 1 - arrives at time 0
