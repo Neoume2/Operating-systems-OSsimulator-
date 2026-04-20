@@ -8,26 +8,34 @@ public class Interpreter {
     private Mutex fileMutex;
     private Scheduler scheduler;  // To add unblocked processes back to ready queue
     private Map<String, StringBuilder> fileSystem;  // Simulated file system (shared across all processes)
+    private InputProvider inputProvider;  // Provides user input for processes
     
-    // Main constructor with shared file system
+    // Main constructor with shared file system and input provider
     public Interpreter(Memory memory, Mutex userInput, Mutex userOutput, Mutex file, Scheduler scheduler, 
-                      Map<String, StringBuilder> sharedFileSystem) {
+                      Map<String, StringBuilder> sharedFileSystem, InputProvider inputProvider) {
         this.memory = memory;
         this.userInput = userInput;
         this.userOutput = userOutput;
         this.fileMutex = file;
         this.scheduler = scheduler;
         this.fileSystem = sharedFileSystem != null ? sharedFileSystem : new HashMap<>();
+        this.inputProvider = inputProvider;
     }
     
     // Constructor without shared file system (creates new one)
     public Interpreter(Memory memory, Mutex userInput, Mutex userOutput, Mutex file, Scheduler scheduler) {
-        this(memory, userInput, userOutput, file, scheduler, null);
+        this(memory, userInput, userOutput, file, scheduler, null, null);
+    }
+    
+    // Constructor with input provider but default file system
+    public Interpreter(Memory memory, Mutex userInput, Mutex userOutput, Mutex file, Scheduler scheduler,
+                      InputProvider inputProvider) {
+        this(memory, userInput, userOutput, file, scheduler, null, inputProvider);
     }
     
     // Legacy constructor for backward compatibility
     public Interpreter(Memory memory, Mutex userInput, Mutex userOutput, Mutex file) {
-        this(memory, userInput, userOutput, file, null, null);
+        this(memory, userInput, userOutput, file, null, null, null);
     }
 
     // Execute a line of code
@@ -111,25 +119,32 @@ public class Interpreter {
         // We don't try to acquire it here - it's already protected
         
         try {
-            // In simulation, generate a value based on process
-            String inputValue = "1";  // Default input
-            if (pcb.getPid() == 1) {
-                // Program 1: wants x and y (range inputs)
-                if (pcb.getVariable("x") == null) {
-                    inputValue = "1";  // First input is 1
-                } else {
-                    inputValue = "10";  // Second input is 10
+            String inputValue;
+            
+            // If an input provider is available, use it for real user input
+            if (inputProvider != null) {
+                inputValue = inputProvider.getInput(pcb.getPid(), "Input for " + varName);
+            } else {
+                // Fallback: Use default values if no input provider is configured
+                inputValue = "1";  // Default input
+                if (pcb.getPid() == 1) {
+                    // Program 1: wants x and y (range inputs)
+                    if (pcb.getVariable("x") == null) {
+                        inputValue = "1";  // First input is 1
+                    } else {
+                        inputValue = "10";  // Second input is 10
+                    }
+                } else if (pcb.getPid() == 2) {
+                    // Program 2: wants a (filename) and b (data)
+                    if (pcb.getVariable("a") == null) {
+                        inputValue = "output.txt";  // filename
+                    } else {
+                        inputValue = "Hello World";  // data
+                    }
+                } else if (pcb.getPid() == 3) {
+                    // Program 3: wants a (filename to read)
+                    inputValue = "output.txt";  // filename to read
                 }
-            } else if (pcb.getPid() == 2) {
-                // Program 2: wants a (filename) and b (data)
-                if (pcb.getVariable("a") == null) {
-                    inputValue = "output.txt";  // filename
-                } else {
-                    inputValue = "Hello World";  // data
-                }
-            } else if (pcb.getPid() == 3) {
-                // Program 3: wants a (filename to read)
-                inputValue = "output.txt";  // filename to read
             }
             
             pcb.setVariable(varName, inputValue);

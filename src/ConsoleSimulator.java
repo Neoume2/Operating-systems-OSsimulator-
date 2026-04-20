@@ -104,18 +104,25 @@ public class ConsoleSimulator {
             System.out.println("Using default configuration");
         }
         
-        // Find the correct path
+        // Find the correct path to program files
         String currentDir = System.getProperty("user.dir");
         String programPath = currentDir;
         
-        // If we're in bin directory, go back to parent
-        if (currentDir.endsWith("bin")) {
-            programPath = currentDir.substring(0, currentDir.length() - 4);  // Remove "/bin"
-        }
-        
-        // If we're in src directory, use current directory
-        if (currentDir.endsWith("src")) {
-            programPath = currentDir;
+        // Try to find the src directory containing program files
+        java.nio.file.Path srcPath = java.nio.file.Paths.get(currentDir, "src");
+        if (java.nio.file.Files.exists(srcPath)) {
+            programPath = srcPath.toString();
+        } else {
+            // If we're already in src directory, use it
+            if (currentDir.endsWith("src")) {
+                programPath = currentDir;
+            } else {
+                // Try parent directory
+                java.nio.file.Path parentSrcPath = java.nio.file.Paths.get(currentDir).getParent().resolve("src");
+                if (java.nio.file.Files.exists(parentSrcPath)) {
+                    programPath = parentSrcPath.toString();
+                }
+            }
         }
         
         System.out.println("\nLoading programs from: " + programPath);

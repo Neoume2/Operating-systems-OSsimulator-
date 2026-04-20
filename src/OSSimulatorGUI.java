@@ -258,7 +258,7 @@ public class OSSimulatorGUI extends JFrame {
         
         simulator = new OSSimulator(algo, this);
         
-        simulationTimer = new Timer(1000, e -> {
+        simulationTimer = new Timer(2000, e -> {
             if (isRunning) {
                 simulator.stepSimulation();
                 updateDisplay();

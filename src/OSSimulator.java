@@ -25,6 +25,7 @@ public class OSSimulator {
     
     // Shared file system for all processes
     private Map<String, StringBuilder> sharedFileSystem;
+    private InputProvider inputProvider;  // Provides user input for processes
     
     public OSSimulator(Scheduler.SchedulingAlgorithm algorithm, OSSimulatorGUI gui) {
         this(algorithm, gui, "./src", DEFAULT_ARRIVAL_TIMES, 2, new int[]{2, 4, 8, 16});
@@ -45,6 +46,9 @@ public class OSSimulator {
         
         // Initialize shared file system
         sharedFileSystem = new HashMap<>();
+        
+        // Initialize input provider (for console/user input)
+        inputProvider = new ConsoleInputProvider();
         
         this.arrivalTimes = customArrivalTimes;
         this.rrQuantum = rrQuantum;
@@ -232,7 +236,7 @@ public class OSSimulator {
         trace.setInstruction(instruction);
         
         // Execute instruction with shared file system and scheduler
-        Interpreter interpreter = new Interpreter(memory, userInput, userOutput, fileMutex, scheduler, sharedFileSystem);
+        Interpreter interpreter = new Interpreter(memory, userInput, userOutput, fileMutex, scheduler, sharedFileSystem, inputProvider);
         String result = interpreter.execute(instruction, pcb);
         trace.setResult(result);
         
